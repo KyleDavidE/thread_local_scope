@@ -70,9 +70,6 @@ use std::{
 #[derive(Clone, Copy)]
 pub struct LocalScope<'a>(PhantomData<*const &'a ()>);
 
-static_assertions::assert_not_impl_any!(LocalScope<'static>: Send, Sync);
-static_assertions::assert_eq_size!(LocalScope<'static>, ());
-
 impl<'a> fmt::Debug for LocalScope<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("ThreadLocalScope").finish()
@@ -131,6 +128,9 @@ fn panic_access_error(err: AccessError) -> ! {
 
 #[cfg(test)]
 mod test {
+    static_assertions::assert_not_impl_any!(LocalScope<'static>: Send, Sync);
+    static_assertions::assert_eq_size!(LocalScope<'static>, ());
+
     use crate::*;
     use std::{
         cell::Cell,
