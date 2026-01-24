@@ -1,0 +1,45 @@
+error[E0277]: `*const &'static ()` cannot be sent between threads safely
+ --> tests/ui/synd_sync_direct.rs:7:19
+  |
+7 |     assert_send::<LocalScope<'static>>();
+  |                   ^^^^^^^^^^^^^^^^^^^ `*const &'static ()` cannot be sent between threads safely
+  |
+  = help: within `LocalScope<'static>`, the trait `Send` is not implemented for `*const &'static ()`
+note: required because it appears within the type `PhantomData<*const &'static ()>`
+ --> $RUST/core/src/marker.rs
+  |
+  | pub struct PhantomData<T: PointeeSized>;
+  |            ^^^^^^^^^^^
+note: required because it appears within the type `LocalScope<'static>`
+ --> src/lib.rs
+  |
+  | pub struct LocalScope<'a>(PhantomData<*const &'a ()>);
+  |            ^^^^^^^^^^
+note: required by a bound in `assert_send`
+ --> tests/ui/synd_sync_direct.rs:3:19
+  |
+3 | fn assert_send<A: Send>() {}
+  |                   ^^^^ required by this bound in `assert_send`
+
+error[E0277]: `*const &'static ()` cannot be shared between threads safely
+ --> tests/ui/synd_sync_direct.rs:8:19
+  |
+8 |     assert_sync::<LocalScope<'static>>();
+  |                   ^^^^^^^^^^^^^^^^^^^ `*const &'static ()` cannot be shared between threads safely
+  |
+  = help: within `LocalScope<'static>`, the trait `Sync` is not implemented for `*const &'static ()`
+note: required because it appears within the type `PhantomData<*const &'static ()>`
+ --> $RUST/core/src/marker.rs
+  |
+  | pub struct PhantomData<T: PointeeSized>;
+  |            ^^^^^^^^^^^
+note: required because it appears within the type `LocalScope<'static>`
+ --> src/lib.rs
+  |
+  | pub struct LocalScope<'a>(PhantomData<*const &'a ()>);
+  |            ^^^^^^^^^^
+note: required by a bound in `assert_sync`
+ --> tests/ui/synd_sync_direct.rs:4:19
+  |
+4 | fn assert_sync<A: Sync>() {}
+  |                   ^^^^ required by this bound in `assert_sync`

@@ -1,0 +1,11 @@
+[package]
+name = "thread_local_scope"
+description = "Scoped access to thread local storage"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+static_assertions = "1.1.0"
+
+[dev-dependencies]
+trybuild = "1.0.114"
