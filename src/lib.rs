@@ -81,7 +81,7 @@ impl<'a> fmt::Debug for LocalScope<'a> {
 
 /// Crates a new [`LocalScope`] bound to the current call stack.
 ///
-/// within the callback function, thread local storage can be freely accessed
+/// Within the callback function, thread local storage can be freely accessed
 pub fn local_scope<F, R>(f: F) -> R
 where
     F: for<'a> FnOnce(LocalScope<'a>) -> R,
@@ -97,7 +97,7 @@ impl<'a> LocalScope<'a> {
     ///
     /// # Safety
     ///
-    /// The current thread's TLS must live for at least `'a` and no TLS destructors may be entered.
+    /// The current thread's TLS must live for at least `'a` and no TLS destructors may be entered during `'a`.
     pub const unsafe fn unguarded_new() -> Self {
         Self(PhantomData)
     }
