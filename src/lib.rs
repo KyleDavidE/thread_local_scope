@@ -76,7 +76,13 @@ impl<'a> fmt::Debug for LocalScope<'a> {
 
 /// Crates a new [`LocalScope`] bound to the current call stack.
 ///
-/// Within the callback function, thread local storage can be freely accessed
+/// Within the callback function, thread local storage can be freely accessed.
+///
+/// References to thread locals can't escape the callback:
+/// ```compile_fail
+/// thread_local! { static A: u8 = 0; }
+/// thread_local_scope::local_scope(|x| x.access(&A));
+/// ```
 pub fn local_scope<F, R>(f: F) -> R
 where
     F: for<'a> FnOnce(LocalScope<'a>) -> R,
