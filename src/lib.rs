@@ -8,7 +8,6 @@
 //! # use thread_local_scope::local_scope;
 //! # struct Whatever();
 //! # impl Whatever { fn new() -> Self { Self() } }
-//! #
 //! thread_local! {
 //!     static WHATEVER: Whatever = Whatever::new();
 //! }
@@ -42,7 +41,6 @@
 //! ```
 //! # use std::{thread::LocalKey, cell::Cell};
 //! # use thread_local_scope::local_scope;
-//!
 //! fn swap_local_cells<T>(a: &'static LocalKey<Cell<T>>, b: &'static LocalKey<Cell<T>>) {
 //!     local_scope(|s| {
 //!         s.access(a).swap(s.access(b))
