@@ -1,11 +1,11 @@
-//! Provides a token type [`LocalScope`] that guards access to thread local storage. Makes it easier to work with thread locals inside the scope.
+//! Provides a token type [`LocalScope`] that guards access to thread local storage, avoiding the need for a closure on every access.
 //!
 //! # Examples
 //!
 //! You can use the scoping to gracefully handle errors.
 //!
 //! ```
-//! # use thread_local_scope::local_scope;
+//! use thread_local_scope::local_scope;
 //! # struct Whatever();
 //! # impl Whatever { fn new() -> Self { Self() } }
 //! thread_local! {
@@ -37,7 +37,7 @@
 //!
 //!
 //!
-//! This allows avoiding nested closures if working with multiple LocalScopes.
+//! This allows avoiding nested closures if working with multiple LocalKeys.
 //! ```
 //! # use std::{thread::LocalKey, cell::Cell};
 //! # use thread_local_scope::local_scope;
@@ -64,13 +64,14 @@ use std::{
 ///
 /// # Thread safety
 ///
-/// This marker is locked on the thread that it is created on.
+/// This struct is locked on the thread that it is created on.
 #[derive(Clone, Copy)]
+#[repr(transparent)]
 pub struct LocalScope<'a>(PhantomData<*const &'a ()>);
 
 impl<'a> fmt::Debug for LocalScope<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("ThreadLocalScope").finish()
+        f.debug_struct("LocalScope").finish()
     }
 }
 
@@ -89,17 +90,19 @@ where
 {
     f(
         // Safety, because 'a is unbound in the callback signature, this lifetime is limited to the duration of this call, during which we can't enter any TLS destructors
-        unsafe { LocalScope::unguarded_new() },
+        //
+        // this is the same safety argument for why `LocalKey::with` is safe in the first place
+        unsafe { LocalScope::new_unchecked() },
     )
 }
 
 impl<'a> LocalScope<'a> {
-    /// Creates an unguarded [LocalScope].
+    /// Creates a new [LocalScope] without any checks. Prefer [local_scope] for safe usage.
     ///
     /// # Safety
     ///
-    /// The current thread's TLS must live for at least `'a` and no TLS destructors may be entered during `'a`.
-    pub const unsafe fn unguarded_new() -> Self {
+    /// None of the current thread's local keys may be destroyed during `'a`.
+    pub const unsafe fn new_unchecked() -> Self {
         Self(PhantomData)
     }
 
@@ -107,7 +110,7 @@ impl<'a> LocalScope<'a> {
     pub fn try_access<T>(self, target: &'static LocalKey<T>) -> Result<&'a T, AccessError> {
         target.try_with(
             #[inline]
-            |tls| {
+            |tls| -> &'a T {
                 // safety: tls is a reference to data that lives in a TLS. by the condition on Self, this reference must actually live for 'a
                 unsafe { &*(tls as *const T) }
             },
@@ -127,6 +130,7 @@ impl<'a> LocalScope<'a> {
 #[track_caller]
 #[cold]
 fn panic_access_error(err: AccessError) -> ! {
+    // message copied directly from std.
     panic!("cannot access a Thread Local Storage value during or after destruction: {err:?}")
 }
 
