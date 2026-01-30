@@ -96,6 +96,13 @@ where
     )
 }
 
+/// Internal function used as the common callback.
+/// This is only safe to use as a callback if thread locals will live for 'a
+#[inline(always)]
+fn unsafe_tls_callback<'a, T>(tls: &T) -> &'a T {
+    unsafe { &*(tls as *const T) }
+}
+
 impl<'a> LocalScope<'a> {
     /// Creates a new [LocalScope] without any checks. Prefer [local_scope] for safe usage.
     ///
@@ -108,30 +115,14 @@ impl<'a> LocalScope<'a> {
 
     /// Equivalent to [`LocalKey::try_with`] without the need for the closure.
     pub fn try_access<T>(self, target: &'static LocalKey<T>) -> Result<&'a T, AccessError> {
-        target.try_with(
-            #[inline]
-            |tls| -> &'a T {
-                // safety: tls is a reference to data that lives in a TLS. by the condition on Self, this reference must actually live for 'a
-                unsafe { &*(tls as *const T) }
-            },
-        )
+        target.try_with(unsafe_tls_callback)
     }
 
     /// Equivalent to [`LocalKey::with`] without the need for the closure.
+    #[track_caller]
     pub fn access<T>(self, target: &'static LocalKey<T>) -> &'a T {
-        match self.try_access(target) {
-            Ok(x) => x,
-            Err(ae) => panic_access_error(ae),
-        }
+        target.with(unsafe_tls_callback)
     }
-}
-
-#[cfg_attr(not(panic = "immediate-abort"), inline(never))]
-#[track_caller]
-#[cold]
-fn panic_access_error(err: AccessError) -> ! {
-    // message copied directly from std.
-    panic!("cannot access a Thread Local Storage value during or after destruction: {err:?}")
 }
 
 #[cfg(test)]

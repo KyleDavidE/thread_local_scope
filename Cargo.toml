@@ -2,12 +2,13 @@
 name = "thread_local_scope"
 description = "Scoped access to thread local storage"
 version = "0.2.0"
-edition = "2024"
+edition = "2021"
 categories = ["rust-patterns"]
 keywords = ["thread_local"]
 license = "MIT OR Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/KyleDavidE/thread_local_scope/"
+rust-version = "1.56.1"
 
 [dev-dependencies]
 static_assertions = "1.1.0"
