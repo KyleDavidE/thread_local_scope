@@ -64,7 +64,7 @@ use std::{
 ///
 /// # Thread safety
 ///
-/// This struct is locked on the thread that it is created on.
+/// Since this struct makes assertions about the current thread, it implements neither [`Send`] nor [`Sync`].
 #[derive(Clone, Copy)]
 #[repr(transparent)]
 pub struct LocalScope<'a>(PhantomData<*const &'a ()>);
@@ -108,7 +108,7 @@ impl<'a> LocalScope<'a> {
     ///
     /// # Safety
     ///
-    /// None of the current thread's local keys may be destroyed during `'a`.
+    /// References to thread local storage must live for `'a`, that is none of the current thread's local keys may become destroyed during `'a`.
     pub const unsafe fn new_unchecked() -> Self {
         Self(PhantomData)
     }
