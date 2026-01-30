@@ -183,7 +183,7 @@ mod test {
 
         swap_local_cells(&A, &B);
 
-        assert_eq!(A.get(), 1);
-        assert_eq!(B.get(), 0);
+        assert_eq!(A.with(|x| x.get()), 1);
+        assert_eq!(B.with(|x| x.get()), 0);
     }
 }
