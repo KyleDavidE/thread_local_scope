@@ -23,3 +23,7 @@ local_scope(|scope| {
     ...
 })?
 ```
+
+# Scope
+
+This crate is deliberately minimal. Other crates may use this crate to create more advanced abstractions over thread local storage.
