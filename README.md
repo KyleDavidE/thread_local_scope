@@ -6,18 +6,19 @@ Provides a token type `LocalScope` that guards access to thread local storage. M
 
 
 ```rust
-WHATEVER.try_with(|r| {
-    ...
-})
+LOCAL_ONE.try_with(|one| {
+    LOCAL_TWO.try_with(|two| {
+        ...
+    })
+})??
 ```
 
 becomes
 
 ```rust
 local_scope(|scope| {
-    let r = scope.try_access(&WHATEVER)?
+    let one = scope.try_access(&LOCAL_ONE)?;
+    let two = scope.try_access(&LOCAL_TWO)?;
     ...
-})
+})?
 ```
-
-Which allows for more flexible code.
